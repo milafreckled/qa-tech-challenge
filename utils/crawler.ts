@@ -8,8 +8,6 @@ const THROTTLE_MS = Number(process.env.THROTTLE_MS ?? 300);
 /** GitHub's created: filter has second resolution, so windows are measured in seconds. */
 const iso = (d: Date) =>
   new Date(Math.floor(d.getTime() / 1000) * 1000).toISOString().replace('.000', '');
-// const addSeconds = (d: Date, n: number) => new Date(d.getTime() + n * 1000);
-// const spanInSeconds = (from: Date, to: Date) => Math.floor((to.getTime() - from.getTime()) / 1000);
 
 /**
  * Every navigation is a fresh URL, so the sort has to travel with each query -
@@ -42,14 +40,7 @@ async function* paginate(pulls: PullRequestsPage) {
 }
 
 /**
- * Walks [from, to] as creation-time windows, halving any window GitHub will not
- * paginate fully.
- *
- * Splitting on timestamps rather than dates matters: a single busy day can hold more
- * PRs than one query will serve. 
- * Second-granularity keeps halving into hours and minutes.
- * Each half is strictly shorter, so the recursion terminates - the floor is a
- * one-second window, which no repo can overflow.
+ * Walks [from, to] as creation-time windows, reading rows from each page.
  */
 export async function* crawlByWindows(
   pulls: PullRequestsPage,
@@ -60,14 +51,6 @@ export async function* crawlByWindows(
   await new Promise((r) => setTimeout(r, THROTTLE_MS));
   await pulls.open(buildQuery(filter, { from, to }));
   const pages = await pulls.claimedPageCount();
-//   const canSplit =  spanInSeconds(from, to) >= 1;
-
-//   if (canSplit) {
-//     const mid = addSeconds(from, Math.floor(spanInSeconds(from, to) / 2));
-//     yield* crawlByWindows(pulls, filter, from, mid);
-//     yield* crawlByWindows(pulls, filter, addSeconds(mid, 1), to);
-//     return;
-//   }
 
   const collected = await test.step(`window ${iso(from)} .. ${iso(to)}`, async () => {
     const rows: PullRequest[] = [];
@@ -75,7 +58,7 @@ export async function* crawlByWindows(
     return rows;
   });
 
-  // Recording the count per window to distinguish betwenn empty windows and silent failures
+  /** Recording the count per window to distinguish betwenn empty windows and silent failures */
   test.info().annotations.push({
     type: 'window',
     description: `${iso(from)}..${iso(to)} -> ${collected.length} PR(s), ${pages} page(s)`,

@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/base';
 
-test('start page has no console errors', async ({ page, consoleErrors }) => {
-  await page.goto('');
+test('start page has no console errors', async ({ homePage, consoleErrors }) => {
+  await homePage.goto();
   expect(consoleErrors).toHaveLength(0);
 });
 

@@ -27,7 +27,7 @@ export const test = base.extend<PageFixtures>({
     await use(new AboutPage(page));
   },
   loginPage: async ({ page }, use) => {
-    let loginPage = new LoginPage(page);
+    const loginPage = new LoginPage(page);
     await loginPage.goto();
     await use(loginPage);
   },

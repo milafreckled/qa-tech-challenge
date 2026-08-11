@@ -15,8 +15,10 @@ type ScrapeOptions = {
 };
 
 export const test = base.extend<ScrapeFixtures & ScrapeOptions>({
-  // Option fixture – set in playwright.config.ts, overridable with `--repo=…`
-  repo: ['appwrite/appwrite', { option: true }],
+  // Option fixture – override via `REPO=owner/name` on the CLI, or per spec with
+  // `test.use({ repo: 'owner/name' })`. No `--repo=` flag: custom option fixtures
+  // aren't exposed on the Playwright CLI directly.
+  repo: [process.env.REPO || 'appwrite/appwrite', { option: true }],
   pullRequestsPage: async ({ page, repo }, use) => {
     const SKIPPED_RESOURCES = ['image', 'font', 'media', 'stylesheet'];
     await page.route('**/*', (route) =>
