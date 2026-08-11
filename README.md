@@ -2,7 +2,7 @@
 
 Playwright + TypeScript end-to-end tests for the [FashionHub](https://pocketaces2.github.io/fashionhub/) demo site. The suite runs cross-browser (Chromium, Firefox, WebKit) against three environments — local, staging, production — picked via CLI or config file.
 
-There's also one bonus test (`test-case4`) that scrapes a GitHub repo's open pull requests to CSV. It's unrelated to FashionHub itself — see [Test cases](#test-cases) for why it's scoped differently from the rest.
+`test-case4` by default runs only on Chromium, it's unrelated to FashionHub itself — see [Test cases](#test-cases) for why it's scoped differently from the rest.
 
 ## Prerequisites
 
@@ -18,6 +18,14 @@ npx playwright install --with-deps
 ```
 
 Run that second command once per machine (or CI runner) — `npm install` gets you the Playwright library, but the actual browser binaries (Chromium, Firefox, WebKit) it drives are a separate download.
+
+## Type checking (build step)
+
+```bash
+npm run typecheck
+```
+
+Worth noting there's no separate build step for this project — Playwright Test transpiles `.ts` files on the fly when it runs them, so `typecheck` (`tsc --noEmit`) exists purely to catch type errors early, not to produce anything.
 
 ## Running the app locally
 
@@ -61,13 +69,6 @@ Set `ENV` to something that isn't one of the three below and it fails fast with 
 | `staging`    | `https://staging-env/fashionhub/`                |
 | `production` | `https://pocketaces2.github.io/fashionhub/`      |
 
-## Type checking
-
-```bash
-npm run typecheck
-```
-
-Worth noting there's no separate build step for this project — Playwright Test transpiles `.ts` files on the fly when it runs them, so `typecheck` (`tsc --noEmit`) exists purely to catch type errors early, not to produce anything.
 
 ## Project structure
 
@@ -89,7 +90,7 @@ Specs pull `test`/`expect` from `fixtures/base.ts` rather than `@playwright/test
 | `test-case1.spec.ts` | Home and About pages load without unexpected console errors |
 | `test-case2.spec.ts` | Every link on the home page resolves to a 2xx/3xx status |
 | `test-case3.spec.ts` | Login flow with valid credentials |
-| `test-case4.spec.ts` | Bonus: exports a GitHub repo's open PRs to CSV |
+| `test-case4.spec.ts` | Exports a GitHub repo's open PRs to CSV |
 
 **Why `test-case4` only runs on Chromium:** the cross-browser requirement is really about making sure FashionHub itself renders and behaves consistently across engines. `test-case4` never touches FashionHub — it's scraping a GitHub search-results page, and that renders identically no matter which browser is driving it. Running it on all three projects would just triple the request load against GitHub's servers for no extra signal, and this scraper already tripped GitHub's secondary rate limit once during development, on a single browser. So `playwright.config.ts` excludes it from the `firefox` and `webkit` projects via `testIgnore`.
 
