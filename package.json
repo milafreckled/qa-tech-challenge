@@ -1,0 +1,22 @@
+{
+  "name": "technical-challenge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:local": "ENV=local npx playwright test",
+    "test:staging": "ENV=staging npx playwright test",
+    "test:production": "ENV=production npx playwright test",
+    "typecheck": "npx tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "dotenv": "^17.4.2",
+    "typescript": "^7.0.2"
+  }
+}
