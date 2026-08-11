@@ -1,6 +1,6 @@
 # FashionHub E2E Test Suite
 
-Playwright + TypeScript end-to-end tests for the [FashionHub](https://pocketaces2.github.io/fashionhub/) demo site. The suite runs cross-browser (Chromium, Firefox, WebKit) against three environments — local, staging, production — picked via CLI or config file.
+Playwright + TypeScript end-to-end tests for the [FashionHub](https://pocketaces2.github.io/fashionhub/) demo site. The suite runs cross-browser — Chromium, Firefox, WebKit, and Microsoft Edge — against three environments — local, staging, production — picked via CLI or config file.
 
 `test-case4` by default runs only on Chromium, it's unrelated to FashionHub itself — see [Test cases](#test-cases) for why it's scoped differently from the rest.
 
@@ -18,6 +18,8 @@ npx playwright install --with-deps
 ```
 
 Run that second command once per machine (or CI runner) — `npm install` gets you the Playwright library, but the actual browser binaries (Chromium, Firefox, WebKit) it drives are a separate download.
+
+Microsoft Edge is the exception: `npx playwright install` doesn't fetch it, with or without `--with-deps`. The `msedge` project launches whatever real Edge is already installed on your machine (`channel: 'msedge'` in `playwright.config.ts`) rather than a Playwright-managed copy, so `--project=msedge` only works if [Edge](https://www.microsoft.com/edge) is installed separately as a normal application first.
 
 ## Type checking (build step)
 
@@ -48,9 +50,9 @@ A few other ways to run things:
 
 ```bash
 npx playwright test tests/test-case2.spec.ts       # a single spec file
-npx playwright test -g "login for demouser"         # a single test by name
-npx playwright test --project=chromium               # a single browser
-npx playwright show-report                           # open the last HTML report
+npx playwright test -g "login for demouser"        # a single test by name
+npx playwright test --project=chromium             # a single browser
+npx playwright show-report                         # open the last HTML report
 ```
 
 ## Environment configuration
@@ -92,8 +94,8 @@ Specs pull `test`/`expect` from `fixtures/base.ts` rather than `@playwright/test
 | `test-case3.spec.ts` | Login flow with valid credentials |
 | `test-case4.spec.ts` | Exports a GitHub repo's open PRs to CSV |
 
-**Why `test-case4` only runs on Chromium:** the cross-browser requirement is really about making sure FashionHub itself renders and behaves consistently across engines. `test-case4` never touches FashionHub — it's scraping a GitHub search-results page, and that renders identically no matter which browser is driving it. Running it on all three projects would just triple the request load against GitHub's servers for no extra signal, and this scraper already tripped GitHub's secondary rate limit once during development, on a single browser. So `playwright.config.ts` excludes it from the `firefox` and `webkit` projects via `testIgnore`.
+**Why `test-case4` only runs on Chromium:** the cross-browser requirement is really about making sure FashionHub itself renders and behaves consistently across engines. `test-case4` never touches FashionHub — it's scraping a GitHub search-results page, and that renders identically no matter which browser is driving it. Running it on every project would just multiply the request load against GitHub's servers for no extra signal, and this scraper already tripped GitHub's secondary rate limit once during development, on a single browser. So `playwright.config.ts` excludes it from the `firefox`, `webkit`, and `msedge` projects via `testIgnore`.
 
-It scrapes `appwrite/appwrite` by default. To point it at a different repo, override the `repo` option fixture in the spec — `test.use({ repo: 'owner/name' })` — there's no CLI flag for this yet.
+It scrapes `appwrite/appwrite` by default. To point it at a different repo, override the `repo` option fixture  via REPO='owner/user' in CLI or in the spec — `test.use({ repo: 'owner/name' })`.
 
-The CSV itself lands in Playwright's per-test output directory (`test-results/.../open-pulls.csv`) and gets attached to the HTML report too, so `npx playwright show-report` is the easiest way to grab it.
+The CSV with open PRs can be found in Playwright's per-test output directory (`test-results/.../open-pulls.csv`) and gets attached to the HTML report too, so `npx playwright show-report` is the easiest way to grab it.
