@@ -1,14 +1,12 @@
 import { createWriteStream, type WriteStream } from 'node:fs';
 import type { PullRequest } from '../data';
 
-/** Streams rows to disk – memory stays flat whether the repo has 50 or 50 000 PRs. */
 export class CsvWriter {
   private readonly stream: WriteStream;
   private count = 0;
 
   constructor(readonly path: string) {
     this.stream = createWriteStream(path, { encoding: 'utf8' });
-   // this.stream.write('\uFEFF'); // BOM so Excel opens UTF-8 correctly
     this.writeRow(['lp', 'name', 'created_at', 'author']);
   }
 

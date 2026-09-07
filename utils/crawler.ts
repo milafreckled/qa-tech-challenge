@@ -27,15 +27,14 @@ function buildQuery(filter: string, window?: { from: Date; to: Date }): string {
  * Follows the "Next" link until it disappears.
  * Assumes the first page of the query is already opened.
  */
-async function* paginate(pulls: PullRequestsPage) {
+async function* paginate(pullsPage: PullRequestsPage) {
   for (let pageIndex = 1; ; pageIndex++) {
-    yield* await test.step(`page ${pageIndex}`, () => pulls.readRows());
-
-    const nextUrl = await pulls.nextPageUrl();
+    yield* await test.step(`page ${pageIndex}`, () => pullsPage.readRows());
+    const nextUrl = await pullsPage.nextPageUrl();
     if (!nextUrl) return;
 
     await new Promise((r) => setTimeout(r, THROTTLE_MS));
-    await pulls.goto(nextUrl);
+    await pullsPage.goto(nextUrl);
   }
 }
 
@@ -43,18 +42,18 @@ async function* paginate(pulls: PullRequestsPage) {
  * Walks [from, to] as creation-time windows, reading rows from each page.
  */
 export async function* crawlByWindows(
-  pulls: PullRequestsPage,
+  pullsPage: PullRequestsPage,
   filter: string,
   from: Date,
   to: Date,
 ): AsyncGenerator<PullRequest> {
   await new Promise((r) => setTimeout(r, THROTTLE_MS));
-  await pulls.open(buildQuery(filter, { from, to }));
-  const pages = await pulls.claimedPageCount();
+  await pullsPage.open(buildQuery(filter, { from, to }));
+  const pages = await pullsPage.claimedPageCount();
 
   const collected = await test.step(`window ${iso(from)} .. ${iso(to)}`, async () => {
     const rows: PullRequest[] = [];
-    for await (const pr of paginate(pulls)) rows.push(pr);
+    for await (const pr of paginate(pullsPage)) rows.push(pr);
     return rows;
   });
 
@@ -64,7 +63,7 @@ export async function* crawlByWindows(
     description: `${iso(from)}..${iso(to)} -> ${collected.length} PR(s), ${pages} page(s)`,
   });
 
-  yield* collected;
+  yield* collected; // hand over every item from an array/generator; streams per window
 }
 
 /** Oldest matching PR date, read from the site instead of hardcoded. */

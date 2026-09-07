@@ -22,8 +22,6 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
   },
 
   projects: [
@@ -43,6 +41,7 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
       testIgnore: '**/test-case4.spec.ts',
     },
+
     {
       name: 'msedge',
       use: { ...devices['Desktop Edge'], channel: 'msedge' },

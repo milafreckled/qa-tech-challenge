@@ -1,8 +1,6 @@
-export type Environment = 'local' | 'staging' | 'production';
+import { Environment, EnvironmentConfig } from "../data";
 
-export interface EnvironmentConfig {
-  baseURL: string;
-}
+export const DEFAULT_ENV: Environment = 'local';
 
 export const environments: Record<Environment, EnvironmentConfig> = {
   local: {
@@ -15,8 +13,6 @@ export const environments: Record<Environment, EnvironmentConfig> = {
     baseURL: 'https://pocketaces2.github.io/fashionhub/',
   },
 };
-
-export const DEFAULT_ENV: Environment = 'local';
 
 export function resolveEnvironment(): Environment {
   const env = process.env.ENV;
